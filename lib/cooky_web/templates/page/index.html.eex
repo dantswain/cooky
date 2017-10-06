@@ -1,0 +1,26 @@
+<h2>Let's make cookies!</h2>
+
+Click some ingredients:
+<ul id="ingredient-list">
+  <%= for ingredient <- @ingredients do %>
+    <li>
+      <a href='#' id="ingredient-<%= ingredient.id %>"><%= ingredient.name %></a>
+      - <span id="ingredient-count-<%= ingredient.id %>">0</span>
+    </li>
+  <% end %>
+</ul>
+
+In the oven:
+<ul>
+  <li>Nothing :(</li>
+</ul>
+
+Cooling:
+<ul>
+  <li>Nothing :(</li>
+</ul>
+
+Ready!
+<ul>
+  <li>Nothing :(</li>
+</ul>
