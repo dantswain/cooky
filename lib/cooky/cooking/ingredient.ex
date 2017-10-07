@@ -9,4 +9,8 @@ defmodule Cooking.Ingredient do
 
     field :selected_count, :integer, default: 0, virtual: true
   end
+
+  def select(ingredient) do
+    %{ingredient | selected_count: ingredient.selected_count + 1}
+  end
 end

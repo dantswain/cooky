@@ -2,26 +2,21 @@ defmodule Cooky.Chef do
   use GenServer
 
   defmodule State do
+    alias Cooking.IngredientMap
+
     defstruct ingredient_map: %{}
 
-    def init_ingredient_map(state) do
-      map = Cooking.all_ingredients()
-            |> Enum.map(fn(i) -> {i.id, i} end)
-            |> Enum.into(%{})
-
-      %{state | ingredient_map: map}
+    def init() do
+      map = IngredientMap.from_ingredients(Cooking.all_ingredients())
+      %__MODULE__{ingredient_map: map}
     end
 
     def ingredients(state) do
-      Map.values(state.ingredient_map)
+      IngredientMap.ingredients(state.ingredient_map)
     end
 
     def select_ingredient(state, ingredient_id) do
-      map = Map.update(
-        state.ingredient_map,
-        ingredient_id,
-        {:error_no_ingredient, ingredient_id},
-        fn(i) -> %{i | selected_count: i.selected_count + 1} end)
+      map = IngredientMap.select_ingredient(state.ingredient_map, ingredient_id)
       %{state | ingredient_map: map}
     end
   end
@@ -39,7 +34,7 @@ defmodule Cooky.Chef do
   end
 
   def init([]) do
-    {:ok, State.init_ingredient_map(%State{})}
+    {:ok, State.init()}
   end
 
   def handle_call(:ingredients, _from, state) do
