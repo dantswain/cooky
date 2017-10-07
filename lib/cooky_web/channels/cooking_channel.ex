@@ -1,6 +1,8 @@
 defmodule CookyWeb.CookingChannel do
   use CookyWeb, :channel
 
+  alias Cooky.Chef
+
   def join("cooking:lobby", payload, socket) do
     if authorized?(payload) do
       {:ok, socket}
@@ -9,10 +11,14 @@ defmodule CookyWeb.CookingChannel do
     end
   end
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
-  def handle_in("ping", payload, socket) do
-    {:reply, {:ok, %{response: "PONG"}}, socket}
+  def handle_in(
+    "select:ingredient",
+    %{"ingredient_id" => ingredient_id},
+    socket
+  ) do
+    ingredient_id = String.to_integer(ingredient_id)
+    ingredients = Chef.select_ingredient(ingredient_id)
+    {:reply, {:ok, %{ingredients: ingredients}}, socket}
   end
 
   # It is also common to receive messages from the client and

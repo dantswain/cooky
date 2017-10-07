@@ -20,14 +20,22 @@ import "phoenix_html"
 
 import {Socket} from "phoenix"
 
-function onIngredientClick(ingredientId) {
-  chan.push("ping", {})
-    .receive("ok", (msg) => {
-      console.log("PONG")
-      console.log(msg)
-    })
+function setIngredientCount(id, count) {
+  let sp = document.getElementById("ingredient-count-" + id)
+  sp.innerHTML = count
+}
 
-  console.log("Clicked " + ingredientId);
+function updateIngredientCounts(ingredients) {
+  ingredients.forEach( (ingredient) => {
+    setIngredientCount(ingredient.id, ingredient.selected_count)
+  } )
+}
+
+function onIngredientClick(ingredientId) {
+  chan.push("select:ingredient", {ingredient_id: ingredientId})
+    .receive("ok", (msg) => {
+      updateIngredientCounts(msg.ingredients)
+    })
 }
 
 function setClickHandlers() {

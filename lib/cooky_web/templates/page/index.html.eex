@@ -5,7 +5,7 @@ Click some ingredients:
   <%= for ingredient <- @ingredients do %>
     <li>
       <a href='#' id="ingredient-<%= ingredient.id %>"><%= ingredient.name %></a>
-      - <span id="ingredient-count-<%= ingredient.id %>">0</span>
+      - <span id="ingredient-count-<%= ingredient.id %>"><%= ingredient.selected_count %></span>
     </li>
   <% end %>
 </ul>
