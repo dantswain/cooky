@@ -39,6 +39,17 @@ defmodule Cooky.Chef do
     GenServer.call(__MODULE__, {:reset, ingredients})
   end
 
+  # makes the database query from the caller
+  def reset do
+    ingredients = Cooking.all_ingredients()
+    GenServer.call(__MODULE__, {:reset, ingredients})
+  end
+
+  # makes the database query from inside the genserver
+  def reset_in_proc do
+    GenServer.call(__MODULE__, :reset)
+  end
+
   def init([]) do
     ingredients = Cooking.all_ingredients()
     {:ok, State.init(ingredients)}
@@ -51,6 +62,11 @@ defmodule Cooky.Chef do
   def handle_call({:select_ingredient, ingredient_id}, _from, state) do
     state_out = State.select_ingredient(state, ingredient_id)
     {:reply, State.ingredients(state_out), state_out}
+  end
+
+  def handle_call(:reset, _from, state) do
+    ingredients = Cooking.all_ingredients()
+    {:reply, :ok, State.init(ingredients)}
   end
 
   def handle_call({:reset, ingredients}, _from, _state) do

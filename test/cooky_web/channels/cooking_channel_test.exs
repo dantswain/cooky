@@ -17,7 +17,9 @@ defmodule CookyWeb.CookingChannelTest do
     batter = Fixture.create_ingredient_type("batter")
     regular_batter = Fixture.create_ingredient("regular batter", batter)
 
-    Chef.reset(Cooky.Repo.all(Cooking.Ingredient))
+    # fails
+    # Chef.reset_in_proc()
+    Chef.reset
 
     ref = push socket, "select:ingredient", %{"ingredient_id" => "#{regular_batter.id}"}
     assert_reply ref, :ok, %{ingredients: [ingredient_after]}
