@@ -12,8 +12,6 @@ defmodule Cooky.Application do
       supervisor(Cooky.Repo, []),
       # Start the endpoint when the application starts
       supervisor(CookyWeb.Endpoint, []),
-      # Start your own worker by calling: Cooky.Worker.start_link(arg1, arg2, arg3)
-      # worker(Cooky.Worker, [arg1, arg2, arg3]),
       worker(Cooky.Chef, [])
     ]
 

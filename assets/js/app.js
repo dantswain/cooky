@@ -34,7 +34,7 @@ function updateIngredientCounts(ingredients) {
 function onIngredientClick(ingredientId) {
   chan.push("select:ingredient", {ingredient_id: ingredientId})
     .receive("ok", (msg) => {
-      updateIngredientCounts(msg.ingredients)
+      // ok
     })
 }
 
@@ -71,7 +71,9 @@ chan.join()
   .receive("ignore", () => console.log("auth error"))
   .receive("ok", onJoin)
 
-chan.on("")
+chan.on("select:ingredient", (msg) => {
+  updateIngredientCounts(msg.ingredients)
+})
 
 chan.onError(e => console.log("something went wrong", e))
 chan.onClose(e => console.log("channel closed", e))

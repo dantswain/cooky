@@ -22,8 +22,9 @@ defmodule CookyWeb.CookingChannelTest do
     Chef.reset
 
     ref = push socket, "select:ingredient", %{"ingredient_id" => "#{regular_batter.id}"}
-    assert_reply ref, :ok, %{ingredients: [ingredient_after]}
+    assert_reply ref, :ok, %{ok: true}
 
+    assert_broadcast "select:ingredient", %{ingredients: [ingredient_after]}
     assert 1 == ingredient_after.selected_count
   end
 

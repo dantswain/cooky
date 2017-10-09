@@ -18,7 +18,8 @@ defmodule CookyWeb.CookingChannel do
   ) do
     ingredient_id = String.to_integer(ingredient_id)
     ingredients = Chef.select_ingredient(ingredient_id)
-    {:reply, {:ok, %{ingredients: ingredients}}, socket}
+    broadcast socket, "select:ingredient", %{ingredients: ingredients}
+    {:reply, {:ok, %{ok: true}}, socket}
   end
 
   # It is also common to receive messages from the client and
