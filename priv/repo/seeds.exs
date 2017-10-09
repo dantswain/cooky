@@ -54,6 +54,7 @@ recipes = [
   },
   %Recipe{
     name: "Deluxe Chocolate Chip",
+    cooling_time: 2_000,
     recipe_ingredients: [
       %RecipeIngredient{ingredient_id: ingredient_ids["Normal Batter"]},
       %RecipeIngredient{ingredient_id: ingredient_ids["Chocolate Chips"], quantity: 2}
@@ -61,6 +62,7 @@ recipes = [
   },
   %Recipe{
     name: "Peanut Butter",
+    cooking_time: 2_000,
     recipe_ingredients: [
       %RecipeIngredient{ingredient_id: ingredient_ids["Peanut Butter Batter"]}
     ]

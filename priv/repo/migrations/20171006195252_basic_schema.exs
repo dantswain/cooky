@@ -15,6 +15,8 @@ defmodule Cooky.Repo.Migrations.BasicSchema do
 
     create table("recipes") do
       add :name, :string, null: false
+      add :cooking_time, :integer, null: false, default: 3_000
+      add :cooling_time, :integer, null: false, default: 1_000
     end
     create index("recipes", [:name], unique: true)
 
