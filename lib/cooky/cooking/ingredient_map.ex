@@ -10,7 +10,7 @@ defmodule Cooking.IngredientMap do
   def ingredients(ingredient_map), do: Map.values(ingredient_map)
 
   def select_ingredient(ingredient_map, ingredient_id) do
-    {:ok, current_count} = Map.fetch(ingredient_map, ingredient_id)
-    Map.put(ingredient_map, ingredient_id, current_count + 1)
+    {:ok, ingredient} = Map.fetch(ingredient_map, ingredient_id)
+    Map.put(ingredient_map, ingredient_id, Ingredient.select(ingredient))
   end
 end

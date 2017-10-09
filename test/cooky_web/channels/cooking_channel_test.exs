@@ -1,6 +1,8 @@
 defmodule CookyWeb.CookingChannelTest do
   use CookyWeb.ChannelCase
 
+  alias Cooky.Chef
+  alias Cooky.Fixture
   alias CookyWeb.CookingChannel
 
   setup do
@@ -9,6 +11,18 @@ defmodule CookyWeb.CookingChannelTest do
       |> subscribe_and_join(CookingChannel, "cooking:lobby")
 
     {:ok, socket: socket}
+  end
+
+  test "select:ingredient updates the ingredient count", %{socket: socket} do
+    batter = Fixture.create_ingredient_type("batter")
+    regular_batter = Fixture.create_ingredient("regular batter", batter)
+
+    Chef.reset(Cooky.Repo.all(Cooking.Ingredient))
+
+    ref = push socket, "select:ingredient", %{"ingredient_id" => "#{regular_batter.id}"}
+    assert_reply ref, :ok, %{ingredients: [ingredient_after]}
+
+    assert 1 == ingredient_after.selected_count
   end
 
   test "shout broadcasts to cooking:lobby", %{socket: socket} do

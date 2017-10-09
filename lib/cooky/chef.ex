@@ -1,13 +1,15 @@
 defmodule Cooky.Chef do
   use GenServer
 
+  alias Cooking.IngredientMap
+
   defmodule State do
     alias Cooking.IngredientMap
 
     defstruct ingredient_map: %{}
 
-    def init() do
-      map = IngredientMap.from_ingredients(Cooking.all_ingredients())
+    def init(ingredients) do
+      map = IngredientMap.from_ingredients(ingredients)
       %__MODULE__{ingredient_map: map}
     end
 
@@ -33,8 +35,13 @@ defmodule Cooky.Chef do
     GenServer.call(__MODULE__, {:select_ingredient, ingredient_id})
   end
 
+  def reset(ingredients) do
+    GenServer.call(__MODULE__, {:reset, ingredients})
+  end
+
   def init([]) do
-    {:ok, State.init()}
+    ingredients = Cooking.all_ingredients()
+    {:ok, State.init(ingredients)}
   end
 
   def handle_call(:ingredients, _from, state) do
@@ -44,5 +51,9 @@ defmodule Cooky.Chef do
   def handle_call({:select_ingredient, ingredient_id}, _from, state) do
     state_out = State.select_ingredient(state, ingredient_id)
     {:reply, State.ingredients(state_out), state_out}
+  end
+
+  def handle_call({:reset, ingredients}, _from, _state) do
+    {:reply, :ok, State.init(ingredients)}
   end
 end
