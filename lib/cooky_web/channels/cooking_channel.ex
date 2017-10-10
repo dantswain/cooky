@@ -1,7 +1,7 @@
 defmodule CookyWeb.CookingChannel do
   use CookyWeb, :channel
 
-  alias Cooky.Chef
+  alias Cooking.Chef
 
   def join("cooking:lobby", payload, socket) do
     if authorized?(payload) do

@@ -12,7 +12,7 @@ defmodule Cooky.Application do
       supervisor(Cooky.Repo, []),
       # Start the endpoint when the application starts
       supervisor(CookyWeb.Endpoint, []),
-      worker(Cooky.Chef, [])
+      worker(Cooking.Chef, [])
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

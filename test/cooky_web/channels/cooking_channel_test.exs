@@ -1,7 +1,7 @@
 defmodule CookyWeb.CookingChannelTest do
   use CookyWeb.ChannelCase
 
-  alias Cooky.Chef
+  alias Cooking.Chef
   alias Cooky.Fixture
   alias CookyWeb.CookingChannel
 
