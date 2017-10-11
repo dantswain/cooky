@@ -9,6 +9,14 @@ defmodule Cooking.IngredientMap do
 
   def ingredients(ingredient_map), do: Map.values(ingredient_map)
 
+  def satisfies_recipe?(ingredient_map, recipe) do
+    Enum.all?(recipe.recipe_ingredients, fn(recipe_ingredient) ->
+      ingredient_id = recipe_ingredient.ingredient_id
+      ingredient = Map.get(ingredient_map, ingredient_id)
+      ingredient.selected_count >= recipe_ingredient.quantity
+    end)
+  end
+
   def update_ingredient(ingredient_map, ingredient_id, updater) 
   when is_function(updater, 1) do
     {:ok, ingredient} = Map.fetch(ingredient_map, ingredient_id)

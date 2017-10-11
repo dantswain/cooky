@@ -29,32 +29,11 @@ defmodule Cooking do
   defp do_check_recipes(ingredient_map, recipes) do
     satisfied_recipes = Enum.filter(
       recipes,
-      fn(recipe) ->
-        Enum.all?(recipe.recipe_ingredients, fn(recipe_ingredient) ->
-          ingredient_id = recipe_ingredient.ingredient_id
-          ingredient = Map.get(ingredient_map, ingredient_id)
-          ingredient.selected_count >= recipe_ingredient.quantity
-        end)
-      end
+      &(IngredientMap.satisfies_recipe?(ingredient_map, &1))
     )
 
-    used_ingredients = satisfied_recipes
-                       |> Enum.map(
-                         fn(recipe) ->
-                           Enum.map(
-                             recipe.recipe_ingredients,
-                             fn(recipe_ingredient) ->
-                               {
-                                 recipe_ingredient.ingredient_id,
-                                 recipe_ingredient.quantity
-                               }
-                             end)
-                         end
-                       )
-                       |> List.flatten
-
     updated_ingredient_map = Enum.reduce(
-      used_ingredients,
+      used_ingredients(satisfied_recipes),
       ingredient_map,
       fn({ingredient_id, qty}, ingredient_map_acc) ->
         IngredientMap.deselect_ingredient(ingredient_map_acc, ingredient_id, qty)
@@ -62,5 +41,22 @@ defmodule Cooking do
     )
 
     {satisfied_recipes, updated_ingredient_map}
+  end
+
+  defp used_ingredients(recipes) do
+    recipes
+    |> Enum.map(
+      fn(recipe) ->
+        Enum.map(
+          recipe.recipe_ingredients,
+          fn(recipe_ingredient) ->
+            {
+              recipe_ingredient.ingredient_id,
+              recipe_ingredient.quantity
+            }
+          end)
+      end
+    )
+    |> List.flatten
   end
 end
