@@ -6,11 +6,11 @@ defmodule Cooking.Chef do
   defmodule State do
     alias Cooking.IngredientMap
 
-    defstruct ingredient_map: %{}
+    defstruct ingredient_map: %{}, recipes: []
 
-    def init(ingredients) do
+    def init(ingredients, recipes) do
       map = IngredientMap.from_ingredients(ingredients)
-      %__MODULE__{ingredient_map: map}
+      %__MODULE__{ingredient_map: map, recipes: recipes}
     end
 
     def ingredients(state) do
@@ -20,6 +20,10 @@ defmodule Cooking.Chef do
     def select_ingredient(state, ingredient_id) do
       map = IngredientMap.select_ingredient(state.ingredient_map, ingredient_id)
       %{state | ingredient_map: map}
+    end
+
+    def check_recipes(state) do
+      state
     end
   end
 
@@ -42,17 +46,14 @@ defmodule Cooking.Chef do
   # makes the database query from the caller
   def reset do
     ingredients = Cooking.all_ingredients()
-    GenServer.call(__MODULE__, {:reset, ingredients})
-  end
-
-  # makes the database query from inside the genserver
-  def reset_in_proc do
-    GenServer.call(__MODULE__, :reset)
+    recipes = Cooking.all_recipes()
+    GenServer.call(__MODULE__, {:reset, ingredients, recipes})
   end
 
   def init([]) do
     ingredients = Cooking.all_ingredients()
-    {:ok, State.init(ingredients)}
+    recipes = Cooking.all_recipes()
+    {:ok, State.init(ingredients, recipes)}
   end
 
   def handle_call(:ingredients, _from, state) do
@@ -60,16 +61,13 @@ defmodule Cooking.Chef do
   end
 
   def handle_call({:select_ingredient, ingredient_id}, _from, state) do
-    state_out = State.select_ingredient(state, ingredient_id)
+    state_out = state
+                |> State.select_ingredient(ingredient_id)
+                |> State.check_recipes
     {:reply, State.ingredients(state_out), state_out}
   end
 
-  def handle_call(:reset, _from, _state) do
-    ingredients = Cooking.all_ingredients()
-    {:reply, :ok, State.init(ingredients)}
-  end
-
-  def handle_call({:reset, ingredients}, _from, _state) do
-    {:reply, :ok, State.init(ingredients)}
+  def handle_call({:reset, ingredients, recipes}, _from, _state) do
+    {:reply, :ok, State.init(ingredients, recipes)}
   end
 end

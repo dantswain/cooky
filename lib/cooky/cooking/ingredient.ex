@@ -13,4 +13,8 @@ defmodule Cooking.Ingredient do
   def select(ingredient) do
     %{ingredient | selected_count: ingredient.selected_count + 1}
   end
+
+  def deselect(ingredient, n \\ 1) do
+    %{ingredient | selected_count: ingredient.selected_count - n}
+  end
 end
