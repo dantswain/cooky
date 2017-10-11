@@ -11,7 +11,7 @@ Click some ingredients:
 </ul>
 
 In the oven:
-<ul>
+<ul id="cooking-list">
   <li>Nothing :(</li>
 </ul>
 

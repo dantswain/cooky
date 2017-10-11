@@ -6,7 +6,7 @@ defmodule Cooking.Chef do
   defmodule State do
     alias Cooking.IngredientMap
 
-    defstruct ingredient_map: %{}, recipes: []
+    defstruct ingredient_map: %{}, recipes: [], cooking: []
 
     def init(ingredients, recipes) do
       map = IngredientMap.from_ingredients(ingredients)
@@ -22,8 +22,24 @@ defmodule Cooking.Chef do
       %{state | ingredient_map: map}
     end
 
+    def status(state) do
+      %{
+        ingredients: ingredients(state),
+        cooking: state.cooking
+      }
+    end
+
     def check_recipes(state) do
-      state
+      recipe_pool = Enum.shuffle(state.recipes)
+      {now_cooking, updated_ingredient_map} = Cooking.check_recipes(
+        state.ingredient_map,
+        recipe_pool
+      )
+      %{
+        state |
+        ingredient_map: updated_ingredient_map,
+        cooking: state.cooking ++ now_cooking
+      }
     end
   end
 
@@ -33,6 +49,10 @@ defmodule Cooking.Chef do
 
   def ingredients do
     GenServer.call(__MODULE__, :ingredients)
+  end
+
+  def status do
+    GenServer.call(__MODULE__, :status)
   end
 
   def select_ingredient(ingredient_id) do
@@ -56,6 +76,10 @@ defmodule Cooking.Chef do
     {:ok, State.init(ingredients, recipes)}
   end
 
+  def handle_call(:status, _from, state) do
+    {:reply, State.status(state), state}
+  end
+
   def handle_call(:ingredients, _from, state) do
     {:reply, State.ingredients(state), state}
   end
@@ -64,7 +88,7 @@ defmodule Cooking.Chef do
     state_out = state
                 |> State.select_ingredient(ingredient_id)
                 |> State.check_recipes
-    {:reply, State.ingredients(state_out), state_out}
+    {:reply, :ok, state_out}
   end
 
   def handle_call({:reset, ingredients, recipes}, _from, _state) do

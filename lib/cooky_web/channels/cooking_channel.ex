@@ -17,8 +17,15 @@ defmodule CookyWeb.CookingChannel do
     socket
   ) do
     ingredient_id = String.to_integer(ingredient_id)
-    ingredients = Chef.select_ingredient(ingredient_id)
-    broadcast socket, "select:ingredient", %{ingredients: ingredients}
+    Chef.select_ingredient(ingredient_id)
+    status = Chef.status()
+
+    payload = %{
+      ingredients: status.ingredients,
+      cooking: Enum.map(status.cooking, fn(r) -> r.name end)
+    }
+
+    broadcast socket, "select:ingredient", payload
     {:reply, {:ok, %{ok: true}}, socket}
   end
 

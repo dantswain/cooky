@@ -11,7 +11,7 @@ defmodule Cooking do
   end
 
   def all_recipes do
-    Repo.all(from r in Recipe, select: r)
+    Repo.all(from r in Recipe, select: r, preload: [:recipe_ingredients])
   end
 
   def check_recipes(ingredient_map, recipes) do

@@ -31,6 +31,25 @@ function updateIngredientCounts(ingredients) {
   } )
 }
 
+function updateCooking(cooking) {
+  let ul = document.getElementById("cooking-list")
+  while (ul.firstChild) {
+    ul.removeChild(ul.firstChild)
+  }
+
+  if(cooking.length == 0) {
+    let li = document.createElement('li')
+    li.appendChild(document.createTextNode("Nothing :("))
+    ul.appendChild(li)
+  } else {
+    cooking.forEach((thing_cooking) => {
+      let li = document.createElement('li')
+      li.appendChild(document.createTextNode(thing_cooking))
+      ul.appendChild(li)
+    })
+  }
+}
+
 function onIngredientClick(ingredientId) {
   chan.push("select:ingredient", {ingredient_id: ingredientId})
     .receive("ok", (msg) => {
@@ -73,6 +92,7 @@ chan.join()
 
 chan.on("select:ingredient", (msg) => {
   updateIngredientCounts(msg.ingredients)
+  updateCooking(msg.cooking)
 })
 
 chan.onError(e => console.log("something went wrong", e))
