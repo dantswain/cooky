@@ -2,11 +2,13 @@ defmodule Cooking.Chef do
   use GenServer
 
   alias Cooking.IngredientMap
+  alias CookyWeb.CookingChannel
 
   defmodule State do
     alias Cooking.IngredientMap
+    require Logger
 
-    defstruct ingredient_map: %{}, recipes: [], cooking: []
+    defstruct ingredient_map: %{}, recipes: [], cooking: %{}, cooling: %{}, ready: []
 
     def init(ingredients, recipes) do
       map = IngredientMap.from_ingredients(ingredients)
@@ -25,21 +27,65 @@ defmodule Cooking.Chef do
     def status(state) do
       %{
         ingredients: ingredients(state),
-        cooking: state.cooking
+        cooking: Map.values(state.cooking),
+        cooling: Map.values(state.cooling),
+        ready: state.ready
       }
     end
 
     def check_recipes(state) do
       recipe_pool = Enum.shuffle(state.recipes)
-      {now_cooking, updated_ingredient_map} = Cooking.check_recipes(
+      {ready_to_cook, updated_ingredient_map} = Cooking.check_recipes(
         state.ingredient_map,
         recipe_pool
       )
+      now_cooking = start_cooking(ready_to_cook)
       %{
         state |
         ingredient_map: updated_ingredient_map,
-        cooking: state.cooking ++ now_cooking
+        cooking: Map.merge(state.cooking, now_cooking)
       }
+    end
+
+    def done_cooking(state, ref) do
+      {ready_to_cool, still_cooking} = Map.pop(state.cooking, ref)
+      Logger.debug(fn ->
+        "Done cooking: '#{ready_to_cool.name}' (#{inspect ref})"
+      end)
+      now_cooling = start_cooling(ready_to_cool)
+      %{state | cooking: still_cooking, cooling: Map.merge(state.cooling, now_cooling)}
+    end
+
+    def done_cooling(state, ref) do
+      {finished, still_cooling} = Map.pop(state.cooling, ref)
+      Logger.debug(fn ->
+        "Done cooling: '#{finished.name}' (#{inspect ref})"
+      end)
+      %{state | cooling: still_cooling, ready: [finished | state.ready]}
+    end
+
+    defp start_cooking(ready_to_cook) do
+      ready_to_cook
+      |> Enum.map(fn(recipe) ->
+        task = Task.async(fn -> 
+          :timer.sleep(recipe.cooking_time)
+          :done_cooking
+        end)
+        Logger.debug(fn -> "Now cooking: '#{recipe.name}' (#{inspect task.ref})" end)
+        {task.ref, recipe}
+      end)
+      |> Enum.into(%{})
+    end
+
+    defp start_cooling(recipe) do
+      task = Task.async(fn ->
+        :timer.sleep(recipe.cooling_time)
+        :done_cooling
+      end)
+      Logger.debug(fn ->
+        "Now cooling: '#{recipe.name}' (#{inspect task.ref})"
+      end)
+      %{task.ref => recipe}
     end
   end
 
@@ -93,5 +139,21 @@ defmodule Cooking.Chef do
 
   def handle_call({:reset, ingredients, recipes}, _from, _state) do
     {:reply, :ok, State.init(ingredients, recipes)}
+  end
+
+  def handle_info({ref, :done_cooking}, state) do
+    state_out = State.done_cooking(state, ref)
+    CookingChannel.broadcast_status!(State.status(state_out))
+    {:noreply, state_out}
+  end
+
+  def handle_info({ref, :done_cooling}, state) do
+    state_out = State.done_cooling(state, ref)
+    CookingChannel.broadcast_status!(State.status(state_out))
+    {:noreply, state_out}
+  end
+
+  def handle_info({:DOWN, _, _, _, :normal}, state) do
+    {:noreply, state}
   end
 end

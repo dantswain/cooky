@@ -3,6 +3,10 @@ defmodule CookyWeb.CookingChannel do
 
   alias Cooking.Chef
 
+  def broadcast_status!(status) do
+    CookyWeb.Endpoint.broadcast! "cooking:lobby", "status", status_payload(status)
+  end
+
   def join("cooking:lobby", payload, socket) do
     if authorized?(payload) do
       {:ok, socket}
@@ -20,12 +24,7 @@ defmodule CookyWeb.CookingChannel do
     Chef.select_ingredient(ingredient_id)
     status = Chef.status()
 
-    payload = %{
-      ingredients: status.ingredients,
-      cooking: Enum.map(status.cooking, fn(r) -> r.name end)
-    }
-
-    broadcast socket, "select:ingredient", payload
+    broadcast socket, "status", status_payload(status)
     {:reply, {:ok, %{ok: true}}, socket}
   end
 
@@ -34,6 +33,15 @@ defmodule CookyWeb.CookingChannel do
   def handle_in("shout", payload, socket) do
     broadcast socket, "shout", payload
     {:noreply, socket}
+  end
+
+  defp status_payload(status) do
+    %{
+      ingredients: status.ingredients,
+      cooking: Enum.map(status.cooking, fn(r) -> r.name end),
+      cooling: Enum.map(status.cooling, fn(r) -> r.name end),
+      ready: Enum.map(status.ready, fn(r) -> r.name end)
+    }
   end
 
   # Add authorization logic here as required.

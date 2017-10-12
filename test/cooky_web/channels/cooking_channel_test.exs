@@ -22,7 +22,7 @@ defmodule CookyWeb.CookingChannelTest do
     ref = push socket, "select:ingredient", %{"ingredient_id" => "#{regular_batter.id}"}
     assert_reply ref, :ok, %{ok: true}
 
-    assert_broadcast "select:ingredient", broadcast_payload
+    assert_broadcast "status", broadcast_payload
     %{ingredients: [ingredient_after], cooking: []} = broadcast_payload
     assert 1 == ingredient_after.selected_count
   end
@@ -41,7 +41,7 @@ defmodule CookyWeb.CookingChannelTest do
     ref = push socket, "select:ingredient", %{"ingredient_id" => "#{regular_batter.id}"}
     assert_reply ref, :ok, %{ok: true}
 
-    assert_broadcast "select:ingredient", broadcast_payload
+    assert_broadcast "status", broadcast_payload
     %{ingredients: ingredients_after, cooking: [cooking]} = broadcast_payload
 
     assert 2 == length(ingredients_after)

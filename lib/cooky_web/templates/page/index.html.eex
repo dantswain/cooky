@@ -16,11 +16,11 @@ In the oven:
 </ul>
 
 Cooling:
-<ul>
+<ul id="cooling-list">
   <li>Nothing :(</li>
 </ul>
 
 Ready!
-<ul>
+<ul id="ready-list">
   <li>Nothing :(</li>
 </ul>

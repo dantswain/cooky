@@ -31,23 +31,35 @@ function updateIngredientCounts(ingredients) {
   } )
 }
 
-function updateCooking(cooking) {
-  let ul = document.getElementById("cooking-list")
+function ulFromList(id, list) {
+  let ul = document.getElementById(id)
   while (ul.firstChild) {
     ul.removeChild(ul.firstChild)
   }
 
-  if(cooking.length == 0) {
+  if(list.length == 0) {
     let li = document.createElement('li')
     li.appendChild(document.createTextNode("Nothing :("))
     ul.appendChild(li)
   } else {
-    cooking.forEach((thing_cooking) => {
+    list.forEach((thing) => {
       let li = document.createElement('li')
-      li.appendChild(document.createTextNode(thing_cooking))
+      li.appendChild(document.createTextNode(thing))
       ul.appendChild(li)
     })
   }
+}
+
+function updateCooking(cooking) {
+  ulFromList("cooking-list", cooking)
+}
+
+function updateCooling(cooling) {
+  ulFromList("cooling-list", cooling)
+}
+
+function updateReady(ready) {
+  ulFromList("ready-list", ready)
 }
 
 function onIngredientClick(ingredientId) {
@@ -90,9 +102,11 @@ chan.join()
   .receive("ignore", () => console.log("auth error"))
   .receive("ok", onJoin)
 
-chan.on("select:ingredient", (msg) => {
+chan.on("status", (msg) => {
   updateIngredientCounts(msg.ingredients)
   updateCooking(msg.cooking)
+  updateCooling(msg.cooling)
+  updateReady(msg.ready)
 })
 
 chan.onError(e => console.log("something went wrong", e))
