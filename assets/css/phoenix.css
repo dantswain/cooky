@@ -22,11 +22,17 @@ body, form, ul, table {
   border-bottom: 1px solid #e5e5e5;
 }
 .logo {
+  -moz-transform: scaleX(-1);
+  -o-transform: scaleX(-1);
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+  filter: FlipH;
+  -ms-filter: "FlipH";
   width: 400px;
   height: 225px;
   display: inline-block;
   margin-bottom: 1em;
-  background-image: url("/images/cookies.jpg");
+  background-image: url("/images/cookies2.jpg");
   background-size: 400px 225px;
 }
 
