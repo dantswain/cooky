@@ -2,7 +2,6 @@ defmodule Cooking.Chef do
   use GenServer
 
   alias Cooking.IngredientMap
-  alias CookyWeb.CookingChannel
 
   defmodule State do
     alias Cooking.IngredientMap

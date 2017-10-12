@@ -48,11 +48,6 @@ defmodule CookyWeb.CookingChannelTest do
     assert regular_cookie.name == cooking
   end
 
-  test "shout broadcasts to cooking:lobby", %{socket: socket} do
-    push socket, "shout", %{"hello" => "all"}
-    assert_broadcast "shout", %{"hello" => "all"}
-  end
-
   test "broadcasts are pushed to the client", %{socket: socket} do
     broadcast_from! socket, "broadcast", %{"some" => "data"}
     assert_push "broadcast", %{"some" => "data"}
