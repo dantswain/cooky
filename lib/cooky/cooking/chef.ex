@@ -8,7 +8,14 @@ defmodule Cooking.Chef do
     alias Cooking.IngredientMap
     require Logger
 
-    defstruct ingredient_map: %{}, recipes: [], cooking: %{}, cooling: %{}, ready: []
+    defstruct [
+      ingredient_map: %{},
+      recipes: [],
+      cooking: %{},
+      cooling: %{},
+      ready: [],
+      status_callback: nil
+    ] 
 
     def init(ingredients, recipes) do
       map = IngredientMap.from_ingredients(ingredients)
@@ -22,6 +29,16 @@ defmodule Cooking.Chef do
     def select_ingredient(state, ingredient_id) do
       map = IngredientMap.select_ingredient(state.ingredient_map, ingredient_id)
       %{state | ingredient_map: map}
+    end
+
+    def register_status_callback(state, callback) do
+      %{state | status_callback: callback}
+    end
+
+    def on_status(state = %State{status_callback: nil}), do: state
+    def on_status(state) do
+      state.status_callback.(status(state))
+      state
     end
 
     def status(state) do
@@ -67,10 +84,7 @@ defmodule Cooking.Chef do
     defp start_cooking(ready_to_cook) do
       ready_to_cook
       |> Enum.map(fn(recipe) ->
-        task = Task.async(fn -> 
-          :timer.sleep(recipe.cooking_time)
-          :done_cooking
-        end)
+        task = timer_task(recipe.cooking_time, :done_cooking)
         Logger.debug(fn -> "Now cooking: '#{recipe.name}' (#{inspect task.ref})" end)
         {task.ref, recipe}
       end)
@@ -78,14 +92,18 @@ defmodule Cooking.Chef do
     end
 
     defp start_cooling(recipe) do
-      task = Task.async(fn ->
-        :timer.sleep(recipe.cooling_time)
-        :done_cooling
-      end)
+      task = timer_task(recipe.cooling_time, :done_cooling)
       Logger.debug(fn ->
         "Now cooling: '#{recipe.name}' (#{inspect task.ref})"
       end)
       %{task.ref => recipe}
+    end
+
+    defp timer_task(duration, message) do
+      Task.async(fn ->
+        :timer.sleep(duration)
+        message
+      end)
     end
   end
 
@@ -103,6 +121,10 @@ defmodule Cooking.Chef do
 
   def select_ingredient(ingredient_id) do
     GenServer.call(__MODULE__, {:select_ingredient, ingredient_id})
+  end
+
+  def register_status_callback(callback) when is_function(callback, 1) do
+    GenServer.call(__MODULE__, {:register_status_callback, callback})
   end
 
   def reset(ingredients) do
@@ -141,15 +163,21 @@ defmodule Cooking.Chef do
     {:reply, :ok, State.init(ingredients, recipes)}
   end
 
+  def handle_call({:register_status_callback, callback}, _from, state) do
+    {:reply, :ok, State.register_status_callback(state, callback)}
+  end
+
   def handle_info({ref, :done_cooking}, state) do
-    state_out = State.done_cooking(state, ref)
-    CookingChannel.broadcast_status!(State.status(state_out))
+    state_out = state
+                |> State.done_cooking(ref)
+                |> State.on_status
     {:noreply, state_out}
   end
 
   def handle_info({ref, :done_cooling}, state) do
-    state_out = State.done_cooling(state, ref)
-    CookingChannel.broadcast_status!(State.status(state_out))
+    state_out = state
+                |> State.done_cooling(ref)
+                |> State.on_status
     {:noreply, state_out}
   end
 

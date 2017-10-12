@@ -18,7 +18,13 @@ defmodule Cooky.Application do
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Cooky.Supervisor]
-    Supervisor.start_link(children, opts)
+    {:ok, pid} = Supervisor.start_link(children, opts)
+
+    Cooking.Chef.register_status_callback(
+      &CookyWeb.CookingChannel.broadcast_status!/1
+    )
+
+    {:ok, pid}
   end
 
   # Tell Phoenix to update the endpoint configuration
